@@ -1,0 +1,82 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>New Post</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/pixel.css">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    body { margin: 40px; }
+    input, textarea { width: 100%; margin-bottom: 15px; padding: 8px; }
+    #preview img { max-width: 100%; margin-top: 0; }
+    .position-relative { position: relative; }
+    .position-absolute { position: absolute; top: 0; right: 0; }
+  </style>
+</head>
+<body>
+
+<%- include('partials/navbar', { user: user, showBackButton: true }) %>
+
+<div class="container mt-3">
+  <h1>New Post</h1>
+
+  <form action="/posts" method="POST" enctype="multipart/form-data">
+    <label>Title</label>
+    <input type="text" name="title" required>
+
+    <label>Content</label>
+    <textarea name="body" rows="10" required></textarea>
+
+    <label>Photo (Max 5)</label>
+    <input type="file" name="image" accept="image/*" multiple max="5" id="imgInput">
+    <div id="preview" class="row g-2 mt-2"></div>
+
+    <button type="submit">Post</button>
+  </form>
+
+  <hr>
+  <a href="/posts">Back to home page</a>
+</div>
+
+<script>
+  const imgInput = document.getElementById('imgInput');
+  const preview = document.getElementById('preview');
+  const dt = new DataTransfer();
+  imgInput.addEventListener('change', () => {
+    const selectedFiles = Array.from(imgInput.files);
+    const currentCount = dt.items.length;
+    const newTotalCount = currentCount + selectedFiles.length;
+    if (newTotalCount > 5) {
+      alert(`You can only upload at most 5 photos\nYou have already choose ${currentCount} photos，now you choose ${selectedFiles.length} photos，total number of photos would exceed!`);
+      imgInput.value = '';
+      return;
+    }
+    selectedFiles.forEach(f => dt.items.add(f));
+    renderPreview();
+    syncInput();
+  });
+  function renderPreview() {
+    preview.innerHTML = '';
+    Array.from(dt.files).forEach((file, idx) => {
+      const col = document.createElement('div');
+      col.className = 'col-4 col-md-3 position-relative';
+      col.innerHTML = `
+        <img src="${URL.createObjectURL(file)}" class="img-thumbnail" style="object-fit:contain;height:120px;width:100%;">
+        <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0" onclick="removeFile(${idx})">×</button>
+      `;
+      preview.appendChild(col);
+    });
+  }
+  function removeFile(index) {
+    dt.items.remove(index);
+    renderPreview();
+    syncInput();
+  }
+  function syncInput() {
+    imgInput.files = dt.files;
+  }
+</script>
+
+</body>
+</html>

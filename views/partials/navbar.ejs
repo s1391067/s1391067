@@ -1,0 +1,127 @@
+<nav class="navbar pixel-nav navbar-light px-2 px-lg-3 sticky-top">
+  <div class="container-fluid justify-content-between flex-wrap flex-lg-nowrap">
+
+    <div class="d-flex flex-column align-items-start mb-2 mb-lg-0">
+      <span class="navbar-brand mb-0 fw-bold pixel-title mega-pixel">
+        EXPLORE EARTH<br>
+        <small class="small-pixel online-text">ONLINE</small>
+          <span class="text-r">R</span>
+          <span class="text-p">P</span>
+          <span class="text-g">G</span>
+      </span>
+      <div class="mt-1">
+        <!--Logout-->
+        <form action="/logout" method="post" style="display:inline;">
+          <button class="btn btn-sm btn-warning">Log out</button>
+        </form>
+        <a class="btn btn-primary btn-sm ms-2" href="/posts/new">Post Blog</a>
+      </div>
+    </div>
+
+    <div class="d-flex flex-wrap flex-lg-nowrap align-items-center ms-auto ms-lg-0">
+      <!-- search bar -->
+      <% if (typeof showSearchBar !== 'undefined' && showSearchBar) { %>
+      <div class="mx-2 mx-lg-0" style="max-width:560px;width:90%;">
+        <input id="searchInput" class="form-control form-control-sm" type="search"
+               placeholder="Search Title, PostID, Author" aria-label="Search">
+      </div>
+      <% } %>
+      
+      <div class="d-flex flex-column ms-2">
+        <!-- back home -->
+        <% if (typeof showBackButton !== 'undefined' && showBackButton) { %>
+          <a href="/posts" class="btn btn-sm mb-1" style="background:var(--px-sand);border:2px solid var(--px-dark);">Back to home page</a>
+        <% } %>
+        
+        <% if (typeof user !== 'undefined' && user) { %>
+          <div class="position-relative">
+            <a id="userBadge" class="btn btn-sm btn-outline-dark">
+              Lv.<%= user.lv != null ? user.lv : 0 %> <%= user.username %>
+            </a>
+            <div id="userCard" class="card position-absolute end-0 top-100 mt-1 shadow-sm"
+                 style="width:220px;display:none;z-index:1050;">
+              <div class="card-body">
+                <h6 class="card-title mb-1"><%= user.username %></h6>
+                <p class="mb-1 small">Lv.<%= user.lv != null ? user.lv : 0 %></p>
+                <div class="progress" style="height:6px;">
+                  <div class="progress-bar" role="progressbar"
+                       style="width:<%= Math.floor((user.exp/(user.nextExp||1))*100) %>%"></div>
+                </div>
+                <div class="text-muted small mt-1"><%= user.exp %> / <%= user.nextExp %> EXP</div>
+              </div>
+            </div>
+          </div>
+        <% } %>
+      </div>
+    </div>
+
+  </div>
+</nav>
+
+<script>
+
+  document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    if (!searchInput) {
+      console.log('search bar not ok'); // 
+      return; 
+    }
+
+    console.log('Search bar itit ok'); // 
+
+    searchInput.addEventListener('input', () => {
+      const key = searchInput.value.trim().toLowerCase();
+      console.log('Search Key word:', key); // 
+      
+      const cards = document.querySelectorAll('.card[data-pid]');
+      console.log('Find card:', cards.length); 
+      
+      cards.forEach(card => {
+        const title  = (card.querySelector('.card-title')?.textContent || '').toLowerCase();
+        const author = (card.querySelector('small')?.textContent || '').toLowerCase();
+        const pid    = (card.dataset.pid || '').toLowerCase();
+
+        const haystack = `${title} ${author} ${pid}`;
+        
+        const match = haystack.includes(key);
+        card.style.display = match ? '' : 'none';
+      });
+    });
+  });
+</script>
+
+<% if (locals.flash && flash.message) { %>
+  <div class="flash-message <%= flash.type %>" id="flashMsg">
+    <%= flash.message %>
+  </div>
+  <script>
+    setTimeout(() => {
+      const msg = document.getElementById('flashMsg');
+      if (msg) msg.style.display = 'none';
+    }, 3000);
+  </script>
+<% } %>
+
+<% if (typeof user !== 'undefined' && user) { %>
+<script>
+
+  document.addEventListener('DOMContentLoaded', function() {
+    const userBadge = document.getElementById('userBadge');
+    const userCard  = document.getElementById('userCard');
+    if (!userBadge || !userCard) return;
+    
+    let cardOpen = false;
+    userBadge.addEventListener('click', () => {
+      cardOpen = !cardOpen;
+      userCard.style.display = cardOpen ? 'block' : 'none';
+    });
+    
+    document.addEventListener('click', (e) => {
+      if (!userBadge.contains(e.target) && !userCard.contains(e.target)) {
+        cardOpen = false;
+        userCard.style.display = 'none';
+      }
+    });
+  });
+</script>
+<% } %>
